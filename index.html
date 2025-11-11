@@ -470,30 +470,5 @@
       }, 4000);
     });
   </script>
-  <script>
-  // Function to redirect to anti-piracy page
-  function redirectToAntiPiracy() {
-    window.location.href = '/anti-piracy.html'; // change to your warning page URL
-  }
-
-  // Detect opening DevTools (basic and not 100% reliable)
-  window.addEventListener('keydown', e => {
-    // Common keys for inspecting or saving source
-    if (
-      (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'S')) || // View Source / Save
-      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) || // DevTools
-      e.key === 'F12'
-    ) {
-      e.preventDefault();
-      redirectToAntiPiracy();
-    }
-  });
-
-  // Disable right-click and redirect as well
-  document.addEventListener('contextmenu', e => {
-    e.preventDefault();
-    redirectToAntiPiracy();
-  });
-</script>
 </body>
 </html>
