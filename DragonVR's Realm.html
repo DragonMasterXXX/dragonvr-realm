@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DragonVR's Realm</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;700&display=swap');
+
+    /* Fire flicker animation */
+    @keyframes flickerFire {
+      0%, 100% { filter: drop-shadow(0 0 6px #ff4500) drop-shadow(0 0 8px #ff8c00); opacity: 1; }
+      20%, 60% { filter: drop-shadow(0 0 10px #ff6347) drop-shadow(0 0 12px #ffa500); opacity: 0.85; }
+      40% { filter: drop-shadow(0 0 8px #ff7f50) drop-shadow(0 0 10px #ffb347); opacity: 0.95; }
+      80% { filter: drop-shadow(0 0 9px #ff4500) drop-shadow(0 0 14px #ffa07a); opacity: 0.9; }
+    }
+
+    /* Explosion scale + glow */
+    @keyframes explode {
+      0% {
+        transform: scale(0.8);
+        opacity: 1;
+        filter: drop-shadow(0 0 12px #ff4500);
+      }
+      50% {
+        transform: scale(1.6);
+        opacity: 1;
+        filter:
+          drop-shadow(0 0 25px #ff7a00)
+          drop-shadow(0 0 50px #ff8c00)
+          brightness(1.3);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+        filter:
+          drop-shadow(0 0 15px #ff6a00);
+      }
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #0b0a0f 0%, #1a120b 80%);
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    header {
+      position: relative;
+      padding: 1.5rem 2rem;
+      font-family: 'Anton', sans-serif;
+      font-size: rem;
+      letter-spacing: 4px;
+      color: #ff0000;
+      user-select: none;
+      text-transform: uppercase;
+      text-shadow:
+        0 0 5px #ff6f00,
+        0 0 10px #ff3e00,
+        0 0 20px #ff3e00,
+        0 0 40px #ff1a00,
+        0 0 60px #ff1a00;
+      background: url('https://yt3.googleusercontent.com/O65EdFmIKcAI1ZR-sME-4SE-3lmTIaYGPirtJKJnQRP83_-pvpHvI_wGpZZpgLmGa_XBeUQkgQ=w1280-fcrop64=1,00000000ffffffff-k-c0xffffffff-no-nd-rj') center/cover no-repeat;
+      box-shadow: inset 0 0 80px 20px rgba(255, 69, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      min-height: 160px;
+      overflow: visible;
+    }
+
+    /* Flickering flame icons on left & right */
+    header::before,
+    header::after {
+      content: "🔥";
+      position: absolute;
+      top: 50%;
+      font-size: 2.8rem;
+      filter: drop-shadow(0 0 10px #ff4500);
+      animation: flickerFire 3s infinite alternate;
+      transform: translateY(-50%);
+      z-index: 2;
+    }
+    header::before {
+      left: 15px;
+    }
+    header::after {
+      right: 15px;
+      animation-delay: 1.5s;
+    }
+
+    /* Flex container for profile and title */
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 2rem;
+      width: 100%;
+      max-width: 1100px;
+      position: relative;
+    }
+
+    /* Profile container positioning */
+    .profile-container {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      cursor: pointer;
+      user-select: none;
+      filter: drop-shadow(0 0 20px #ff4500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      flex-shrink: 0;
+    }
+
+    /* The profile image hidden initially for animation */
+    .profile-container img {
+      width: 130px;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 4px solid #ff4500;
+      background: #220900;
+      opacity: 0;
+      transform-origin: center;
+      position: relative;
+      z-index: 4;
+      pointer-events: auto;
+      transition: opacity 0.4s ease;
+    }
+    .profile-container img.visible {
+      opacity: 1;
+      animation: explode 1s forwards;
+    }
+
+    /* Fire explosion effect */
+    .fire-explosion {
+      position: absolute;
+      width: 0;
+      height: 0;
+      left: -5px;
+      top: -5px;
+      transform: translate(5px, 5px) scale(0);
+      border-radius: 50%;
+      box-shadow:
+        0 0 30px 20px #ff4500,
+        0 0 50px 40px #ff6a00,
+        0 0 70px 60px #ff7f32;
+      opacity: 0;
+      animation-fill-mode: forwards;
+      pointer-events: none;
+      transition: width 0s, height 0s;
+      z-index: 3;
+    }
+    .fire-explosion.active {
+      animation: explode 0.8s forwards;
+      opacity: 1;
+      width: 140px;
+      height: 140px;
+      transition: none;
+    }
+
+    /* Title styling to center */
+    .header-title {
+      flex-grow: 1;
+      text-align: center;
+      color: #ff4a00;
+      font-family: 'Anton', sans-serif;
+      font-size: 5.5rem;
+      letter-spacing: 4px;
+      user-select: none;
+      text-transform: uppercase;
+      text-shadow:
+        0 0 5px #ff6f00,
+        0 0 10px #ff3e00,
+        0 0 20px #ff3e00,
+        0 0 40px #ff1a00,
+        0 0 60px #ff1a00;
+      
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 3rem auto 2rem;
+      padding: 0 1rem;
+      flex-grow: 1;
+    }
+
+    h1 {
+      text-align: center;
+      font-family: 'Anton', sans-serif;
+      font-size: 3rem;
+      margin-bottom: 3rem;
+      letter-spacing: 2px;
+      color: #ff6a00;
+      text-shadow:
+        0 0 10px #ff8c00,
+        0 0 20px #ff5e00,
+        0 0 30px #ff3c00;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(280px, 1fr));
+      gap: 2.5rem;
+    }
+
+    .product-card {
+      background: radial-gradient(circle at top center, #2b1200 0%, #0f0a04 90%);
+      border: 2px solid #ff4700;
+      border-radius: 20px;
+      box-shadow: 0 0 15px #ff5700cc;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      z-index: 0;
+    }
+
+    .product-card:hover {
+      transform: scale(1.05) translateY(-10px);
+      box-shadow:
+        0 0 25px #ff6600cc,
+        0 0 40px #ff4500cc,
+        0 0 60px #ff3000ee;
+      z-index: 1;
+    }
+
+    .product-card::before {
+      content: "";
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      box-shadow:
+        0 0 15px #ff5700,
+        0 0 40px #ff3500,
+        0 0 80px #ff2300;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+    .product-card:hover::before {
+      opacity: 1;
+    }
+
+    .product-image {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-bottom: 3px solid #ff4700;
+      filter: drop-shadow(0 0 10px #ff4a00);
+      transition: filter 0.3s ease;
+    }
+
+    .product-card:hover .product-image {
+      filter: drop-shadow(0 0 20px #ff6a00);
+    }
+
+    .product-info {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+
+    .product-title {
+      font-family: 'Anton', sans-serif;
+      font-size: 1.4rem;
+      margin: 0 0 0.75rem 0;
+      color: #ff7b2d;
+      text-shadow:
+        0 0 6px #ff7b2d,
+        0 0 12px #ff4500;
+      text-transform: uppercase;
+    }
+
+    .product-description {
+      font-size: 0.9rem;
+      color: #f0d8b4cc;
+      margin-bottom: 1.25rem;
+      line-height: 1.4;
+      flex-grow: 1;
+    }
+
+    .product-price {
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: #ff3e00;
+      margin-bottom: 1.25rem;
+      text-shadow:
+        0 0 6px #ff3e00;
+    }
+
+    .buy-btn {
+      align-self: flex-start;
+      background: #ff4500;
+      border: none;
+      border-radius: 50px;
+      padding: 0.7rem 1.6rem;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      box-shadow:
+        0 0 8px #ff4500,
+        0 0 15px #ff7500;
+      cursor: pointer;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .buy-btn:hover {
+      background: #ff6500;
+      box-shadow:
+        0 0 12px #ff6500,
+        0 0 25px #ffa000;
+    }
+
+    footer {
+      background: #1a0b0b;
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: 0.9rem;
+      color: #aaa;
+      box-shadow: inset 0 3px 15px #ff450050;
+      user-select: none;
+    }
+    footer a {
+      color: #ff4500;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    footer a:hover {
+      color: #ff7a00;
+      text-shadow:
+        0 0 8px #ff7a00,
+        0 0 12px #ff4500;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      header {
+        font-size: 2.4rem;
+        gap: 1rem;
+        min-height: 140px;
+      }
+      .profile-container {
+        width: 100px;
+        height: 100px;
+      }
+      .profile-container img {
+        width: 100px;
+        height: 100px;
+      }
+    }
+    @media (max-width: 600px) {
+      header {
+        font-size: 2rem;
+        min-height: 130px;
+      }
+      .profile-container {
+        width: 80px;
+        height: 80px;
+      }
+      .profile-container img {
+        width: 80px;
+        height: 80px;
+      }
+      h1 {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="profile-container" aria-label="OfficialDragon1 profile picture" title="OfficialDragon1">
+        <img
+          src="https://yt3.ggpht.com/vbKQ80GzzBAY-lhP9DeiXRavRYxDJd0DkkfZY4_nJjo9RSR5Go2CK3wuCkgpfloYBwUpwKQyHQ=s800-c-k-c0x00ffffff-no-rj"
+          alt="OfficialDragon1 Profile Picture"
+        />
+        <div class="fire-explosion" aria-hidden="true"></div>
+      </div>
+      <div class="header-title" aria-label="DragonVR's Realm title">DragonVR's Realm</div>
+    </div>
+  </header>
+
+  <main>
+    <h1>🔥 Get Your DragonVR Firey Merch 🔥</h1>
+    <section class="products" aria-label="Merchandise Products">
+      <!-- Product cards here unchanged -->
+      <article class="product-card" tabindex="0" aria-label="OfficialDragon1 T-Shirt for $24.99">
+        <img src="https://mockup-api.teespring.com/v3/image/rYMqqGUdF_FwZUmy_Z590VTOFs4/800/800.jpg" alt="DragonVR T-Shirt" class="product-image" />
+        <div class="product-info">
+          <h2 class="product-title">Dragon Flame T-Shirt</h2>
+          <p class="product-description">If you have nothing else, then wear this, duh.. Stay Fired Up!</p>
+          <p class="product-price">$24.99</p>
+          <a href="https://teespring.com/dragon-flame-t-shirt" class="buy-btn" aria-label="Buy Dragon Flame T-Shirt for $24.99">Buy Now</a>
+        </div>
+      </article>
+
+      <article class="product-card" tabindex="0" aria-label="DragonVR Hoodie for $39.99">
+        <img src="https://mockup-api.teespring.com/v3/image/Zsr53YYFA8mGxxNwM2ANflSNSCE/800/800.jpg" alt="DragonVR Hoodie" class="product-image" />
+        <div class="product-info">
+          <h2 class="product-title">Inferno Hoodie</h2>
+          <p class="product-description">Cozy heavy blend hoodie with a brushed interior. Features a double-lined hood, pouch pocket, 1x1 rib with spandex for stretch, seamless body, and eco-friendly tear-away label. Hoodie runs small; size up for best fit.</p>
+          <p class="product-price">$39.99</p>
+          <a href="https://teespring.com/get-inferno-hoodie" class="buy-btn" aria-label="Buy Inferno Hoodie for $39.99">Buy Now</a>
+        </div>
+      </article>
+
+      <article class="product-card" tabindex="0" aria-label="DragonVR Cap for $19.99">
+        <img src="https://mockup-api.teespring.com/v3/image/15tKrOlqYE3olBN-kaz-GFMYUDs/800/800.jpg" alt="DragonVR Mug" class="product-image" />
+        <div class="product-info">
+          <h2 class="product-title">Blazin' Mug</h2>
+          <p class="product-description">Nothing special...</p>
+          <p class="product-price">$19.99</p>
+          <a href="https://teespring.com/blazin-mug" class="buy-btn" aria-label="Buy Blazin' Mug for $19.99">Buy Now</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 DragonVR. All rights reserved. <br />
+    Follow on YouTube: 
+    <a href="https://www.youtube.com/@OfficialDragon1" target="_blank" rel="noopener noreferrer" aria-label="OfficialDragon1 YouTube channel link">
+      @OfficialDragon1
+    </a>
+  </footer>
+
+  <script>
+    const profileImg = document.querySelector('.profile-container img');
+    const fireExplosion = document.querySelector('.fire-explosion');
+
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        // Show explosion effect - triggers animation
+        fireExplosion.classList.add('active');
+
+        // Show profile image with explode animation
+        profileImg.classList.add('visible');
+
+        // Hide explosion after animation finishes
+        fireExplosion.addEventListener('animationend', () => {
+          fireExplosion.classList.remove('active');
+          fireExplosion.style.opacity = '0';
+          fireExplosion.style.width = '0';
+          fireExplosion.style.height = '0';
+        }, { once: true });
+      }, 4000);
+    });
+  </script>
+  <script>
+  // Function to redirect to anti-piracy page
+  function redirectToAntiPiracy() {
+    window.location.href = '/anti-piracy.html'; // change to your warning page URL
+  }
+
+  // Detect opening DevTools (basic and not 100% reliable)
+  window.addEventListener('keydown', e => {
+    // Common keys for inspecting or saving source
+    if (
+      (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'S')) || // View Source / Save
+      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) || // DevTools
+      e.key === 'F12'
+    ) {
+      e.preventDefault();
+      redirectToAntiPiracy();
+    }
+  });
+
+  // Disable right-click and redirect as well
+  document.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    redirectToAntiPiracy();
+  });
+</script>
+<script>
+  // Replace with your official domain
+  const officialDomain = 'dragonvr-realm.netlify.app';
+
+  if (window.location.hostname !== officialDomain) {
+    window.location.href = '/anti-piracy.html';
+  }
+</script>
+</body>
+</html>
